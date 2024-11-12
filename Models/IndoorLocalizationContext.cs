@@ -23,6 +23,10 @@ public partial class IndoorLocalizationContext : DbContext
 
     public virtual DbSet<FloorMap> FloorMaps { get; set; }
 
+    public virtual DbSet<Role> Roles { get; set; }
+
+    public virtual DbSet<User> Users { get; set; }
+
     public virtual DbSet<Zone> Zones { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -101,6 +105,33 @@ public partial class IndoorLocalizationContext : DbContext
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
                 .HasColumnName("ID");
+        });
+
+        modelBuilder.Entity<Role>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("Role_pkey");
+
+            entity.ToTable("Role");
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("ID");
+        });
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("User_pkey");
+
+            entity.ToTable("User");
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("ID");
+            entity.Property(e => e.RoleId).HasColumnName("RoleID");
+
+            entity.HasOne(d => d.Role).WithMany(p => p.Users)
+                .HasForeignKey(d => d.RoleId)
+                .HasConstraintName("FK_RoleID");
         });
 
         modelBuilder.Entity<Zone>(entity =>
