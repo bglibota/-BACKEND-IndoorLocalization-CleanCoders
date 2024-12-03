@@ -47,6 +47,33 @@ namespace IndoorLocalization_API.Controllers
             return CreatedAtAction(nameof(Register), new { id = user.Id }, user);
         }
 
+        [HttpPost("Login")]
+        public async Task<ActionResult<User>> Login([FromBody] LoginModel model)
+        {
+            if (model == null)
+                return BadRequest("Invalid login data.");
+
+            var user = await _context.Users
+                                     .FirstOrDefaultAsync(u => u.Username == model.Username);
+
+            if (user == null)
+                return Unauthorized("Invalid username or password.");
+
+            var hashedPassword = HashPassword(model.Password, user.Salt);
+            if (hashedPassword != user.Password)
+                return Unauthorized("Invalid username or password.");
+
+            var response = new LoginResponse
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Username = user.Username,
+                RoleId = user.RoleId ?? 0,
+            };
+
+            return Ok(response);
+        }
+
         private string HashPassword(string password, string salt)
         {
             using (var sha256 = System.Security.Cryptography.SHA256.Create())
@@ -62,6 +89,20 @@ namespace IndoorLocalization_API.Controllers
             public string Name { get; set; }
             public string Username { get; set; }
             public string Password { get; set; }
+        }
+
+        public class LoginModel
+        {
+            public string Username { get; set; }
+            public string Password { get; set; }
+        }
+
+        public class LoginResponse
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public string Username { get; set; }
+            public int RoleId { get; set; }
         }
     }
 }
