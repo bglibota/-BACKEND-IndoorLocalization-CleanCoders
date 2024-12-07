@@ -2,6 +2,7 @@
 using IndoorLocalization_API.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace IndoorLocalization_API.Controllers
 {
@@ -59,5 +60,15 @@ namespace IndoorLocalization_API.Controllers
 
             return assetPositionHistory ?? new List<AssetPositionHistory>();
         }
+
+        [HttpPost]
+        [Route("AddAssetPositionHistory")]
+        public async Task<HttpStatusCode> AddPositionHistory(AssetPositionHistory positionHistory) 
+        {
+            await _context.AssetPositionHistories.AddAsync(positionHistory);
+            var result= await _context.SaveChangesAsync();
+            return (result>0)?HttpStatusCode.OK:HttpStatusCode.NotModified;
+        }
+        
     }
 }
