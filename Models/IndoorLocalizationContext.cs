@@ -114,6 +114,8 @@ public partial class IndoorLocalizationContext : DbContext
 
             entity.ToTable("User");
 
+            entity.HasIndex(e => e.Username, "UNQ_Username").IsUnique();
+
             entity.Property(e => e.Id).UseIdentityAlwaysColumn();
             entity.Property(e => e.RoleId).HasColumnName("RoleID");
 
