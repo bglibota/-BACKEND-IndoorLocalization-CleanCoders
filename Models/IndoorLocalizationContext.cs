@@ -30,7 +30,7 @@ public partial class IndoorLocalizationContext : DbContext
     public virtual DbSet<Zone> Zones { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseNpgsql("Name=constring");
+        => optionsBuilder.UseNpgsql("Name=serverDatabase");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
