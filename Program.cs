@@ -24,8 +24,8 @@ builder.Configuration.AddUserSecrets<Program>();
 
 
 
-var connectionString = builder.Configuration.GetConnectionString(builder.Environment.IsProduction() ? "serverDatabase" : "localDatabase");
-//var connectionString = builder.Configuration.GetConnectionString("serverDatabase");
+//var connectionString = builder.Configuration.GetConnectionString(builder.Environment.IsProduction() ? "serverDatabase" : "localDatabase");
+var connectionString = builder.Configuration.GetConnectionString("serverDatabase");
 
 builder.Services.AddDbContext<IndoorLocalizationContext>(options =>
       options.UseNpgsql(connectionString));
