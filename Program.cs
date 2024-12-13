@@ -8,14 +8,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddDbContext<IndoorLocalizationContext>();
 
-// Dodajte CORS politiku
+// ADD CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAllOrigins", policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()  // Dozvoljava zahtjeve sa svih domena
-              .AllowAnyMethod()  // Dozvoljava sve HTTP metode (GET, POST, PUT, DELETE...)
-              .AllowAnyHeader(); // Dozvoljava sve zaglavlja
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
     });
 });
 
@@ -26,14 +26,16 @@ builder.Configuration.AddUserSecrets<Program>();
 
 
 
-var connectionString = builder.Configuration.GetConnectionString(builder.Environment.IsProduction() ? "serverDatabase" : "localDatabase");
-//var connectionString = builder.Configuration.GetConnectionString("serverDatabase");
+//var connectionString = builder.Configuration.GetConnectionString(builder.Environment.IsProduction() ? "serverDatabase" : "localDatabase");
+var connectionString = builder.Configuration.GetConnectionString("serverDatabase");
 
 builder.Services.AddDbContext<IndoorLocalizationContext>(options =>
       options.UseNpgsql(connectionString));
 var app = builder.Build();
 
+app.UseCors("AllowAll");
 
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
