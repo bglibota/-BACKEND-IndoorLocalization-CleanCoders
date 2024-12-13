@@ -61,6 +61,18 @@ namespace IndoorLocalization_API.Controllers
             return assetPositionHistory ?? new List<AssetPositionHistory>();
         }
 
+        [HttpGet]
+        [Route("GetAllFloorMapsFromHistory")]
+        public async Task<ActionResult<List<FloorMap>>> GetAllFloorMaps()
+        {
+            var floorMaps = await _context.AssetPositionHistories.Where(p=>p.FloorMapId!=null)
+                                                                 .Include(p=>p.FloorMap)
+                                                                 .GroupBy(p=>p.FloorMapId)
+                                                                 .Select(p=>p.First().FloorMap)
+                                                                 .ToListAsync();
+            return floorMaps ?? new List<FloorMap>();
+        }
+
         [HttpPost]
         [Route("AddAssetPositionHistory")]
         public async Task<HttpStatusCode> AddPositionHistory(AssetPositionHistory positionHistory) 
