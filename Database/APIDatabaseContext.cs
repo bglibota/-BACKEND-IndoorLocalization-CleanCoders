@@ -1,6 +1,5 @@
 ﻿using IndoorLocalization_API.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace IndoorLocalization_API.Database
 {
@@ -10,7 +9,7 @@ namespace IndoorLocalization_API.Database
         public APIDatabaseContext(IndoorLocalizationContext context)
         {
             _context = context;
-            e
+            
         }
        
     }

@@ -6,20 +6,19 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using IndoorLocalization_API.Models;
+using IndoorLocalization_API.Database;
 
 namespace IndoorLocalization_API.Controllers
 {
         [ApiController]
 
     [Route("[controller]")]
-    public class RoleController : ControllerBase
+    public class RoleController : APIDatabaseContext<Role>
     {
-        private readonly IndoorLocalizationContext _context;
+        
 
-        public RoleController(IndoorLocalizationContext context)
-        {
-            _context = context;
-        }
+        public RoleController(IndoorLocalizationContext context) : base(context) { }
+       
 
         [HttpGet]
         [Route("GetAllRoles")]

@@ -4,19 +4,16 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
 using System;
+using IndoorLocalization_API.Database;
 
 namespace IndoorLocalization_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserController : ControllerBase
+    public class UserController : APIDatabaseContext<User>
     {
-        private readonly IndoorLocalizationContext _context;
 
-        public UserController(IndoorLocalizationContext context)
-        {
-            _context = context;
-        }
+        public UserController(IndoorLocalizationContext context):base(context){}
 
         [HttpPost("Register")]
         public async Task<ActionResult<User>> Register([FromBody] RegisterModel model)
