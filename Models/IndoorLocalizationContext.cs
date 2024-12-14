@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Newtonsoft.Json;
 namespace IndoorLocalization_API.Models;
 
 public partial class IndoorLocalizationContext : DbContext
@@ -28,10 +29,6 @@ public partial class IndoorLocalizationContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<Zone> Zones { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseNpgsql("Host=localhost;Database=IndoorLocalization;Username=postgres;Password=123");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -114,6 +111,8 @@ public partial class IndoorLocalizationContext : DbContext
 
             entity.ToTable("User");
 
+            entity.HasIndex(e => e.Username, "UNQ_Username").IsUnique();
+
             entity.Property(e => e.Id).UseIdentityAlwaysColumn();
             entity.Property(e => e.RoleId).HasColumnName("RoleID");
 
@@ -125,10 +124,20 @@ public partial class IndoorLocalizationContext : DbContext
         modelBuilder.Entity<Zone>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("Zone_pkey");
-
             entity.ToTable("Zone");
 
             entity.Property(e => e.Id).UseIdentityAlwaysColumn();
+
+            // Definisanje ValueConverter za Points (List<Point>)
+            var pointsConverter = new ValueConverter<List<Point>, string>(
+                v => JsonConvert.SerializeObject(v),  // Serijalizacija List<Point> u JSON string
+                v => JsonConvert.DeserializeObject<List<Point>>(v)  // Deserijalizacija JSON stringa u List<Point>
+            );
+
+            // Konvertuj Points polje da se čuva kao JSONB
+            entity.Property(e => e.Points)
+                .HasColumnType("jsonb")
+                .HasConversion(pointsConverter);  // Koristi konverter za Points
         });
 
         OnModelCreatingPartial(modelBuilder);
