@@ -89,6 +89,7 @@ namespace IndoorLocalization_API.Controllers
                 {
                     Id = p.Id,
                     AssetId = p.AssetId,
+                    FloorMapId=p.FloorMapId,
                     DateTime = p.DateTime,
                     X = p.X,
                     Y = p.Y,
@@ -126,12 +127,12 @@ namespace IndoorLocalization_API.Controllers
 
         [HttpPost]
         [Route("AddAssetPositionHistory")]
-        public async Task<HttpStatusCode> AddPositionHistory(AssetPositionHistory positionHistory) 
+        public async Task<HttpStatusCode> AddPositionHistory([FromBody] AssetPositionHistory positionHistory)
         {
             await _context.AssetPositionHistories.AddAsync(positionHistory);
-            var result= await _context.SaveChangesAsync();
-            return (result>0)?HttpStatusCode.OK:HttpStatusCode.NotModified;
+            var result = await _context.SaveChangesAsync();
+            return (result > 0) ? HttpStatusCode.OK : HttpStatusCode.NotModified;
         }
-        
+
     }
 }
