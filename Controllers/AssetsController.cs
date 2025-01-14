@@ -25,6 +25,20 @@ namespace IndoorLocalization_API.Controllers
 
             return assets;
         }
+
+        [HttpGet]
+        [Route("GetAsset/{id}")]
+        public async Task<ActionResult<Asset>> GetAsset(int id)
+        {
+            var asset = await _context.Assets.FindAsync(id);
+
+            if (asset == null)
+            {
+                return NotFound();
+            }
+
+            return asset;
+        }
     }
     
 }
