@@ -83,6 +83,22 @@ namespace IndoorLocalization_API.Controllers
             return NoContent();
         }
 
+        [HttpDelete]
+        [Route("DeleteAsset/{id}")]
+        public async Task<IActionResult> DeleteAsset(int id)
+        {
+            var asset = await _context.Assets.FindAsync(id);
+            if (asset == null)
+            {
+                return NotFound();
+            }
+
+            _context.Assets.Remove(asset);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
 
 
     }
