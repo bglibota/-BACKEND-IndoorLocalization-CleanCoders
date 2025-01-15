@@ -55,6 +55,34 @@ namespace IndoorLocalization_API.Controllers
             return CreatedAtAction(nameof(GetAsset), new { id = asset.Id }, asset);
         }
 
+        [HttpPut]
+        [Route("UpdateAsset/{id}")]
+        public async Task<IActionResult> UpdateAsset(int id, [FromBody] Asset updatedAsset)
+        {
+            if (id != updatedAsset.Id)
+            {
+                return BadRequest("Asset ID mismatch.");
+            }
+
+            var asset = await _context.Assets.FindAsync(id);
+            if (asset == null)
+            {
+                return NotFound();
+            }
+
+            asset.Name = updatedAsset.Name;
+            asset.X = updatedAsset.X;
+            asset.Y = updatedAsset.Y;
+            asset.LastSync = updatedAsset.LastSync;
+            asset.Active = updatedAsset.Active;
+            asset.FloorMapId = updatedAsset.FloorMapId;
+
+            _context.Entry(asset).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
 
 
     }
