@@ -39,6 +39,24 @@ namespace IndoorLocalization_API.Controllers
 
             return asset;
         }
+
+        [HttpPost]
+        [Route("AddAsset")]
+        public async Task<IActionResult> AddAsset([FromBody] Asset asset)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            _context.Assets.Add(asset);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetAsset), new { id = asset.Id }, asset);
+        }
+
+
+
     }
-    
+
 }
