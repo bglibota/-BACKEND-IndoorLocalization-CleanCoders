@@ -1,5 +1,6 @@
 ﻿using IndoorLocalization_API.Database;
 using IndoorLocalization_API.Models;
+using IndoorLocalization_API.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
@@ -49,6 +50,57 @@ namespace IndoorLocalization_API.Controllers
         }
 
         [HttpGet]
+        [Route("GetAllByDateAndTimeRange/{date}/{startTime}/{endTime}")]
+        public async Task<ActionResult<List<AssetPositionHistoryDTO>>> GetAllByDateAndTimeRange(DateTime date, TimeSpan startTime, TimeSpan endTime)
+        {
+
+            var assetPositionHistory = await _context.AssetPositionHistories
+                .Where(p => p.DateTime.Value.Date == date.Date
+                            && p.DateTime.Value.TimeOfDay >= startTime
+                            && p.DateTime.Value.TimeOfDay <= endTime)
+                .Include(p=>p.Asset)
+                .Include(p=>p.FloorMap)
+                .Select(p => new AssetPositionHistoryDTO
+                {
+                    Id=p.Id,
+                    AssetId = p.AssetId,
+                    DateTime = p.DateTime,
+                    X = p.X,
+                    Y = p.Y,
+                    AssetName = p.Asset.Name,
+                    FloorMapName = p.FloorMap.Name
+                })
+                .ToListAsync();
+
+            return assetPositionHistory ?? new List<AssetPositionHistoryDTO>();
+        }
+        [HttpGet]
+        [Route("GetAssetPositionHistoryByDateRangeAndTimeRange/{startDate}/{endDate}/{startTime}/{endTime}")]
+        public async Task<ActionResult<List<AssetPositionHistoryDTO>>> GetAssetPositionHistoriesByDateRangeAndTimeRangeAsync(DateTime startDate, DateTime endDate, TimeSpan startTime, TimeSpan endTime)
+        {
+            var assetPositionHistory = await _context.AssetPositionHistories
+                .Where(p => p.DateTime.Value.Date >= startDate.Date
+                            && p.DateTime.Value.Date <= endDate.Date
+                            && p.DateTime.Value.TimeOfDay >= startTime
+                            && p.DateTime.Value.TimeOfDay <= endTime)
+                .Include(p => p.Asset)
+                .Include(p => p.FloorMap)
+                .Select(p => new AssetPositionHistoryDTO
+                {
+                    Id = p.Id,
+                    AssetId = p.AssetId,
+                    FloorMapId=p.FloorMapId,
+                    DateTime = p.DateTime,
+                    X = p.X,
+                    Y = p.Y,
+                    AssetName = p.Asset.Name,
+                    FloorMapName = p.FloorMap.Name
+                })
+                .ToListAsync();
+            return assetPositionHistory ?? new List<AssetPositionHistoryDTO>();
+        }
+
+        [HttpGet]
         [Route("GetAssetPositionHistoryByTimeRange/{assetId}/{startTime}/{endTime}")]
         public async Task<ActionResult<List<AssetPositionHistory>>> GetAssetPositionHistoriesByTimeRangeAsync(int assetId, TimeSpan startTime, TimeSpan endTime)
         {
@@ -75,12 +127,12 @@ namespace IndoorLocalization_API.Controllers
 
         [HttpPost]
         [Route("AddAssetPositionHistory")]
-        public async Task<HttpStatusCode> AddPositionHistory(AssetPositionHistory positionHistory) 
+        public async Task<HttpStatusCode> AddPositionHistory([FromBody] AssetPositionHistory positionHistory)
         {
             await _context.AssetPositionHistories.AddAsync(positionHistory);
-            var result= await _context.SaveChangesAsync();
-            return (result>0)?HttpStatusCode.OK:HttpStatusCode.NotModified;
+            var result = await _context.SaveChangesAsync();
+            return (result > 0) ? HttpStatusCode.OK : HttpStatusCode.NotModified;
         }
-        
+
     }
 }
