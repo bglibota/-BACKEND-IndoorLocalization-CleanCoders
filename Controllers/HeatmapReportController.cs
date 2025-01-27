@@ -4,6 +4,7 @@ using IndoorLocalization_API.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
+using System.Text.Json;
 
 namespace IndoorLocalization_API.Controllers
 {
@@ -127,12 +128,36 @@ namespace IndoorLocalization_API.Controllers
 
         [HttpPost]
         [Route("AddAssetPositionHistory")]
-        public async Task<HttpStatusCode> AddPositionHistory([FromBody] AssetPositionHistory positionHistory)
+        public async Task<HttpStatusCode> AddPositionHistory([FromBody] JsonElement assetPositionJSON)
         {
-            await _context.AssetPositionHistories.AddAsync(positionHistory);
-            var result = await _context.SaveChangesAsync();
-            return (result > 0) ? HttpStatusCode.OK : HttpStatusCode.NotModified;
+            try
+            {
+                var assetPositionHistory = new AssetPositionHistory
+                {
+                    AssetId = assetPositionJSON.GetProperty("AssetId").GetInt32(),
+                    FloorMapId = assetPositionJSON.GetProperty("FloorMapId").GetInt32(),
+                    X = assetPositionJSON.GetProperty("X").GetDouble(),
+                    Y = assetPositionJSON.GetProperty("Y").GetDouble(),
+                    DateTime = DateTime.Now 
+                };
+
+                await _context.AssetPositionHistories.AddAsync(assetPositionHistory);
+                var result = await _context.SaveChangesAsync();
+
+                return result > 0 ? HttpStatusCode.OK : HttpStatusCode.NotModified;
+            }
+            catch (JsonException jsonEx)
+            {
+                Console.WriteLine($"JSON Error: {jsonEx.Message}");
+                return HttpStatusCode.BadRequest;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return HttpStatusCode.InternalServerError;
+            }
         }
+
 
     }
 }
