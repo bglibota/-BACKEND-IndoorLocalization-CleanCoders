@@ -40,6 +40,23 @@ namespace IndoorLocalization_API.Controllers
             return asset;
         }
 
+        [HttpGet]
+        [Route("{id}/GetPositionHistory")]
+        public async Task<ActionResult<List<AssetPositionHistory>>> GetAssetPositionHistory(int id)
+        {
+            var lastSync = await _context.AssetPositionHistories
+            .Where(h => h.AssetId == id)
+            .OrderByDescending(h => h.DateTime)  
+            .FirstOrDefaultAsync();  
+
+            if (lastSync == null)
+            {
+                return NotFound($"No position history found for asset with ID {id}.");
+            }
+
+            return Ok(lastSync);
+        }
+
         [HttpPost]
         [Route("AddAsset")]
         public async Task<IActionResult> AddAsset([FromBody] Asset asset)
