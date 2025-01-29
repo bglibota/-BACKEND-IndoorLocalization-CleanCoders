@@ -121,26 +121,16 @@ public partial class IndoorLocalizationContext : DbContext
                 .HasConstraintName("FK_RoleID");
         });
 
-        modelBuilder.Entity<Zone>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("Zone_pkey");
-            entity.ToTable("Zone");
+        base.OnModelCreating(modelBuilder);
 
-            entity.Property(e => e.Id).UseIdentityAlwaysColumn();
-
-            // Definisanje ValueConverter za Points (List<Point>)
-            var pointsConverter = new ValueConverter<List<Point>, string>(
-                v => JsonConvert.SerializeObject(v),  // Serijalizacija List<Point> u JSON string
-                v => JsonConvert.DeserializeObject<List<Point>>(v)  // Deserijalizacija JSON stringa u List<Point>
+        // Configure Points property to automatically serialize/deserialize to JSON
+        modelBuilder.Entity<Zone>()
+            .ToTable("Zone")
+            .Property(z => z.Points)
+            .HasConversion(
+                v => JsonConvert.SerializeObject(v),  // Serialize List<Point> to JSON
+                v => JsonConvert.DeserializeObject<List<Point>>(v)  // Deserialize JSON to List<Point>
             );
-
-            // Konvertuj Points polje da se čuva kao JSONB
-            entity.Property(e => e.Points)
-                .HasColumnType("jsonb")
-                .HasConversion(pointsConverter);  // Koristi konverter za Points
-        });
-
-        OnModelCreatingPartial(modelBuilder);
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
