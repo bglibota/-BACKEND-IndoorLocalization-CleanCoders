@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Newtonsoft.Json;
+
 namespace IndoorLocalization_API.Models;
 
 public partial class IndoorLocalizationContext : DbContext
@@ -29,6 +28,9 @@ public partial class IndoorLocalizationContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<Zone> Zones { get; set; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        => optionsBuilder.UseNpgsql("Name=serverDatabase");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -124,20 +126,11 @@ public partial class IndoorLocalizationContext : DbContext
         modelBuilder.Entity<Zone>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("Zone_pkey");
+
             entity.ToTable("Zone");
 
             entity.Property(e => e.Id).UseIdentityAlwaysColumn();
-
-            // Definisanje ValueConverter za Points (List<Point>)
-            var pointsConverter = new ValueConverter<List<Point>, string>(
-                v => JsonConvert.SerializeObject(v),  // Serijalizacija List<Point> u JSON string
-                v => JsonConvert.DeserializeObject<List<Point>>(v)  // Deserijalizacija JSON stringa u List<Point>
-            );
-
-            // Konvertuj Points polje da se čuva kao JSONB
-            entity.Property(e => e.Points)
-                .HasColumnType("jsonb")
-                .HasConversion(pointsConverter);  // Koristi konverter za Points
+            entity.Property(e => e.Points).HasColumnType("jsonb");
         });
 
         OnModelCreatingPartial(modelBuilder);
