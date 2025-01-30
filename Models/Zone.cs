@@ -11,5 +11,9 @@ public partial class Zone
 
     public string? Points { get; set; }
 
+    public int FloormapId { get; set; }
+
     public virtual ICollection<AssetZoneHistory> AssetZoneHistories { get; set; } = new List<AssetZoneHistory>();
+
+    public virtual FloorMap Floormap { get; set; } = null!;
 }
