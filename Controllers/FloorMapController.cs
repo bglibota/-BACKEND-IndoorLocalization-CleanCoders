@@ -31,6 +31,19 @@ namespace IndoorLocalization_API.Controllers
                 return NotFound();
             }
             return floorMap;
-        }       
+        }
+
+        [HttpPost]
+        [Route("AddFloormap")]
+        public async Task<ActionResult<FloorMap>> AddFloormap([FromBody] FloorMap floorMap)
+        {
+            if (floorMap == null)
+            {
+                return BadRequest();
+            }
+            var floormapEntity = await _context.FloorMaps.AddAsync(floorMap);
+            await _context.SaveChangesAsync();
+            return floormapEntity.Entity;
+        }
     }
 }
