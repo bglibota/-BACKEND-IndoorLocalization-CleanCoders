@@ -1,6 +1,5 @@
 ﻿using IndoorLocalization_API.Database;
 using IndoorLocalization_API.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,25 +7,23 @@ namespace IndoorLocalization_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class FloormapController : APIDatabaseContext<FloorMap>
+    public class FloorMapController : APIDatabaseContext<FloorMap>
     {
-        public FloormapController(IndoorLocalizationContext context) : base(context) { }
-
+        public FloorMapController(IndoorLocalizationContext context) : base(context) { }
         [HttpGet]
-        [Route("GetAllFloormaps")]
-        public async Task<ActionResult<List<FloorMap>>> GetAllFloormaps()
+        [Route("GetAllFloorMaps")]
+        public async Task<List<FloorMap>> GetAllFloorMaps()
         {
-            var floorMaps = await _context.FloorMaps.ToListAsync();
+            var floorMaps = await _context.FloorMaps.Include(p => p.AssetPositionHistories).ToListAsync();
             if (floorMaps == null)
             {
-                return NotFound();
+                return new List<FloorMap>();
             }
             return floorMaps;
         }
-
         [HttpGet]
-        [Route("GetFloormapById/{id}")]
-        public async Task<ActionResult<FloorMap>> GetFloormapById(int id)
+        [Route("GetFloorMap/{id}")]
+        public async Task<ActionResult<FloorMap>> GetFloorMap(int id)
         {
             var floorMap = await _context.FloorMaps.FindAsync(id);
             if (floorMap == null)
@@ -34,19 +31,6 @@ namespace IndoorLocalization_API.Controllers
                 return NotFound();
             }
             return floorMap;
-        }
-
-        [HttpPost]
-        [Route("AddFloormap")]
-        public async Task<ActionResult<FloorMap>> AddFloormap([FromBody] FloorMap floorMap)
-        {
-            if (floorMap == null)
-            {
-                return BadRequest();
-            }
-            var floormapEntity = await _context.FloorMaps.AddAsync(floorMap);
-            await _context.SaveChangesAsync();
-            return floormapEntity.Entity;
-        }
+        }       
     }
 }
