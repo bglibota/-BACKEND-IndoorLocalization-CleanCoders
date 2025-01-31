@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Newtonsoft.Json;
+
 namespace IndoorLocalization_API.Models;
 
 public partial class IndoorLocalizationContext : DbContext
@@ -29,6 +28,9 @@ public partial class IndoorLocalizationContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<Zone> Zones { get; set; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        => optionsBuilder.UseNpgsql("Name=serverDatabase");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -121,16 +123,23 @@ public partial class IndoorLocalizationContext : DbContext
                 .HasConstraintName("FK_RoleID");
         });
 
-        base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<Zone>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("Zone_pkey");
 
-        // Configure Points property to automatically serialize/deserialize to JSON
-        modelBuilder.Entity<Zone>()
-            .ToTable("Zone")
-            .Property(z => z.Points)
-            .HasConversion(
-                v => JsonConvert.SerializeObject(v),  // Serialize List<Point> to JSON
-                v => JsonConvert.DeserializeObject<List<Point>>(v)  // Deserialize JSON to List<Point>
-            );
+            entity.ToTable("Zone");
+
+            entity.Property(e => e.Id).UseIdentityAlwaysColumn();
+            entity.Property(e => e.FloormapId).HasColumnName("FloormapID");
+            entity.Property(e => e.Points).HasColumnType("jsonb");
+
+            entity.HasOne(d => d.Floormap).WithMany(p => p.Zones)
+                .HasForeignKey(d => d.FloormapId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_FloormapID");
+        });
+
+        OnModelCreatingPartial(modelBuilder);
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

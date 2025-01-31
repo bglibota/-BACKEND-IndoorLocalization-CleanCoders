@@ -1,11 +1,16 @@
 using IndoorLocalization_API.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    options.JsonSerializerOptions.WriteIndented = true;
+});
 builder.Services.AddDbContext<IndoorLocalizationContext>();
 
 // ADD CORS
@@ -23,8 +28,6 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Configuration.AddUserSecrets<Program>();
-
-
 
 //var connectionString = builder.Configuration.GetConnectionString(builder.Environment.IsProduction() ? "serverDatabase" : "localDatabase");
 var connectionString = builder.Configuration.GetConnectionString("serverDatabase");
