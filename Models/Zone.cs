@@ -13,6 +13,8 @@ public partial class Zone
 
     public int FloormapId { get; set; }
 
+    public bool IsActive { get; set; }
+
     public virtual ICollection<AssetZoneHistory> AssetZoneHistories { get; set; } = new List<AssetZoneHistory>();
 
     public virtual FloorMap Floormap { get; set; } = null!;

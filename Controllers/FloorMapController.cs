@@ -10,6 +10,7 @@ namespace IndoorLocalization_API.Controllers
     public class FloorMapController : APIDatabaseContext<FloorMap>
     {
         public FloorMapController(IndoorLocalizationContext context) : base(context) { }
+
         [HttpGet]
         [Route("GetAllFloorMapsWithoutAssetHistories")]
         public async Task<List<FloorMap>> GetAllFloorMapsWithoutAssetHistories()
