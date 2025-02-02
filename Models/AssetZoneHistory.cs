@@ -11,7 +11,7 @@ public partial class AssetZoneHistory
 
     public DateTime? ExitDateTime { get; set; }
 
-    public TimeOnly? RetentionTime { get; set; }
+    public TimeSpan? RetentionTime { get; set; }
 
     public int? AssetId { get; set; }
 

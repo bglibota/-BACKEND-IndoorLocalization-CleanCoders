@@ -3,8 +3,11 @@ using IndoorLocalization_API.Models;
 using IndoorLocalization_API.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using System.Drawing;
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace IndoorLocalization_API.Controllers
 {
@@ -126,7 +129,7 @@ namespace IndoorLocalization_API.Controllers
             return floorMaps ?? new List<FloorMap>();
         }
 
-        [HttpPost]
+        /*[HttpPost]
         [Route("AddAssetPositionHistory")]
         public async Task<HttpStatusCode> AddPositionHistory([FromBody] JsonElement assetPositionJSON)
         {
@@ -142,6 +145,10 @@ namespace IndoorLocalization_API.Controllers
                 };
 
                 await _context.AssetPositionHistories.AddAsync(assetPositionHistory);
+
+
+
+
                 var result = await _context.SaveChangesAsync();
 
                 return result > 0 ? HttpStatusCode.OK : HttpStatusCode.NotModified;
@@ -156,8 +163,140 @@ namespace IndoorLocalization_API.Controllers
                 Console.WriteLine($"Error: {ex.Message}");
                 return HttpStatusCode.InternalServerError;
             }
+        }*/
+        [HttpPost]
+        [Route("AddAssetPositionHistory")]
+        public async Task<HttpStatusCode> AddPositionHistory([FromBody] JsonElement assetPositionJSON)
+        {
+            try
+            {
+                // Parse incoming data
+                int assetId = assetPositionJSON.GetProperty("AssetId").GetInt32();
+                int floorMapId = assetPositionJSON.GetProperty("FloorMapId").GetInt32();
+                double x = assetPositionJSON.GetProperty("X").GetDouble();
+                double y = assetPositionJSON.GetProperty("Y").GetDouble();
+
+                Console.WriteLine($"Received request: AssetId={assetId}, FloorMapId={floorMapId}, X={x}, Y={y}");
+
+                // Create AssetPositionHistory entry
+                var assetPositionHistory = new AssetPositionHistory
+                {
+                    AssetId = assetId,
+                    FloorMapId = floorMapId,
+                    X = x,
+                    Y = y,
+                    DateTime = DateTime.Now
+                };
+
+                await _context.AssetPositionHistories.AddAsync(assetPositionHistory);
+
+                // Fetch zones for the floor map
+                var zones = await _context.Zones
+                    .Where(z => z.FloormapId == floorMapId)
+                    .ToListAsync();
+
+                // Check if the asset is in a zone
+                var currentZone = zones.FirstOrDefault(zone =>
+                {
+                    var points = JsonSerializer.Deserialize<List<Point>>(zone.Points!);
+                    return points != null && IsPointInPolygon(x, y, points);
+                });
+
+                // Fetch the latest AssetZoneHistory entry
+                var latestHistory = await _context.AssetZoneHistories
+                    .Where(azh => azh.AssetId == assetId && azh.ExitDateTime == null)
+                    .OrderByDescending(azh => azh.EnterDateTime)
+                    .FirstOrDefaultAsync();
+
+                if (currentZone != null)
+                {
+                    Console.WriteLine($"Asset {assetId} is inside Zone {currentZone.Id}");
+
+                    if (latestHistory != null && latestHistory.ZoneId != currentZone.Id)
+                    {
+                        latestHistory.ExitDateTime = DateTime.Now;
+                        latestHistory.RetentionTime = latestHistory.ExitDateTime.Value - latestHistory.EnterDateTime;
+                        Console.WriteLine($"Asset {assetId} exited Zone {latestHistory.ZoneId} at {latestHistory.ExitDateTime}, Total Time: {latestHistory.RetentionTime}");
+                    }
+
+                    if (latestHistory == null || latestHistory.ZoneId != currentZone.Id)
+                    {
+                        var newHistory = new AssetZoneHistory
+                        {
+                            AssetId = assetId,
+                            ZoneId = currentZone.Id,
+                            EnterDateTime = DateTime.Now
+                        };
+                        await _context.AssetZoneHistories.AddAsync(newHistory);
+                        Console.WriteLine($"Asset {assetId} entered Zone {currentZone.Id} at {newHistory.EnterDateTime}");
+                    }
+                }
+                else if (latestHistory != null)
+                {
+                    latestHistory.ExitDateTime = DateTime.Now;
+                    latestHistory.RetentionTime = latestHistory.ExitDateTime.Value - latestHistory.EnterDateTime;
+                    Console.WriteLine($"Asset {assetId} exited Zone {latestHistory.ZoneId} at {latestHistory.ExitDateTime}, Total Time: {latestHistory.RetentionTime}");
+                }
+
+                // Save changes to the database
+                var result = await _context.SaveChangesAsync();
+                return result > 0 ? HttpStatusCode.OK : HttpStatusCode.NotModified;
+            }
+            catch (JsonException jsonEx)
+            {
+                Console.WriteLine($"JSON Error: {jsonEx.Message}");
+                return HttpStatusCode.BadRequest;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return HttpStatusCode.InternalServerError;
+            }
+        }
+
+        private bool IsPointInPolygon(double x, double y, List<Point> polygon)
+        {
+            bool isInside = false;
+            int j = polygon.Count - 1;
+
+           
+
+            for (int i = 0; i < polygon.Count; i++)
+            {
+              
+
+                if ((polygon[i].Y > y) != (polygon[j].Y > y))  // Check if y is between the Y-coordinates of the edge
+                {
+                    double intersectionX = (polygon[j].X - polygon[i].X) * (y - polygon[i].Y) / (polygon[j].Y - polygon[i].Y) + polygon[i].X;
+                  
+
+                    if (x < intersectionX) // Check if the point is to the left of the intersection
+                    {
+                        isInside = !isInside;
+                     
+                    }
+                }
+                j = i;
+            }
+
+            Console.WriteLine($"Final result: Point ({x}, {y}) is {(isInside ? "INSIDE" : "OUTSIDE")} the polygon.");
+            return isInside;
         }
 
 
+       
+
+public class Point
+    {
+        [JsonPropertyName("x")]
+        public double X { get; set; }
+
+        [JsonPropertyName("y")]
+        public double Y { get; set; }
     }
+
+
+
+
+}
 }
