@@ -24,18 +24,6 @@ namespace IndoorLocalization_API.Controllers
         }
 
         [HttpGet]
-        [Route("GetAllFloorMapsWithoutAssetHistories")]
-        public async Task<List<FloorMap>> GetAllFloorMapsWithoutAssetHistories()
-        {
-            var floorMaps = await _context.FloorMaps.ToListAsync();
-            if (floorMaps == null)
-            {
-                return new List<FloorMap>();
-            }
-            return floorMaps;
-        }
-
-        [HttpGet]
         [Route("GetAllFloorMaps")]
         public async Task<List<FloorMap>> GetAllFloorMaps()
         {
