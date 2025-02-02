@@ -131,6 +131,7 @@ public partial class IndoorLocalizationContext : DbContext
 
             entity.Property(e => e.Id).UseIdentityAlwaysColumn();
             entity.Property(e => e.FloormapId).HasColumnName("FloormapID");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Points).HasColumnType("jsonb");
 
             entity.HasOne(d => d.Floormap).WithMany(p => p.Zones)
