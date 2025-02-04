@@ -13,7 +13,17 @@ namespace IndoorLocalization_API.Controllers
     public class UserController : APIDatabaseContext<User>
     {
 
-        public UserController(IndoorLocalizationContext context):base(context){}
+        public UserController(IndoorLocalizationContext context) : base(context) { }
+
+        [HttpGet("Profile/{id}")]
+        public async Task<ActionResult<User>> GetUserProfile(int id)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+            if (user == null)
+                return NotFound("User not found.");
+
+            return Ok(user);
+        }
 
         [HttpPost("Register")]
         public async Task<ActionResult<User>> Register([FromBody] RegisterModel model)
@@ -31,7 +41,8 @@ namespace IndoorLocalization_API.Controllers
             {
                 Name = model.Name,
                 Username = model.Username,
-                RoleId = 2 
+                Email = model.Email,
+                RoleId = 2
             };
 
             var salt = Guid.NewGuid().ToString();
@@ -86,6 +97,7 @@ namespace IndoorLocalization_API.Controllers
             public string Name { get; set; }
             public string Username { get; set; }
             public string Password { get; set; }
+            public string Email { get; set; }
         }
 
         public class LoginModel
